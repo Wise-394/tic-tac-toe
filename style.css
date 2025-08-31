@@ -30,10 +30,16 @@ main > * {
 .board-container {
     display: grid;
     grid-template-columns: repeat(3,1fr);
-    gap: 10px 10px;
+    gap: 15px 15px;
     width: 100%;
 }
 .cells {
     border-radius: 10px;
     outline: 1px solid black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.cells:hover{
+    transform: scale(1.1);
 }

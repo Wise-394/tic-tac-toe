@@ -1,5 +1,7 @@
 //contains board game logic
 const boardGame = (function () {
+    let gameFinished = false;
+    let turnCount = 0;
     let boardArray = [
         [null, null, null],
         [null, null, null],
@@ -7,8 +9,15 @@ const boardGame = (function () {
     ];
 
     const getBoard = () => boardArray;
-
+    const getGameFinished = () => gameFinished;
+    const increaseTurnCount = () => gameFinished ? turnCount : turnCount++;
+    function setGameFinished(isFinished) {
+        isFinished ? gameFinished = true : gameFinished = false;
+    }
+    
     function resetBoard() {
+        gameFinished = false;
+        turnCount = 0;
         boardArray = [
             [null, null, null],
             [null, null, null],
@@ -17,12 +26,23 @@ const boardGame = (function () {
     }
 
     function setBoard(char, row, column) {
+        if (gameFinished) {
+            return false;
+        }
         if (boardArray[row][column] !== null) {
             return false; //error
         }
         boardArray[row][column] = char;
         checkIfWin();
+        increaseTurnCount()
         return true; //success
+    }
+
+    function checkIfDraw(){
+        if (turnCount === 9){
+            gameFinished = true;
+            return true;
+        }
     }
 
     function checkIfWin() {
@@ -56,7 +76,7 @@ const boardGame = (function () {
     }
 
 
-    return ({ getBoard, setBoard, resetBoard });
+    return ({ getBoard, setBoard, resetBoard, setGameFinished, getGameFinished, checkIfDraw });
 })();
 
 //anything associated with players
@@ -93,25 +113,92 @@ const controller = (function () {
             success ? turn = "player1" : handlefailedToTurn();
         }
 
-        console.table(boardGame.getBoard());
+        view.updateTurn(turn);
+        if(boardGame.checkIfDraw()){
+            onDraw();
+        }
     }
-
+   
     function handlefailedToTurn() {
         console.log("turn invalid");
     }
 
     function onWin() {
-        console.log("congrats! ", turn);
         if (turn === "player1") {
             player1.updateScore();
         } else if (turn === "player2") {
             player2.updateScore();
         }
-        boardGame.resetBoard();
+        view.onWinView(turn);
+        boardGame.setGameFinished(true);
+    }
+     function onDraw() {
+        view.updateDraw();
+    }
+    
+    function resetController(){
         turn = "player1"
     }
 
-    return ({ placeChar, onWin });
+    return ({ placeChar, onWin, resetController });
 
 })();
-// TODO:  make the html/css
+
+
+//view
+const cells = document.querySelectorAll(".cells");
+const turnLabel = document.querySelector("#turn-label")
+const resetButton = document.querySelector("#reset-button")
+cells.forEach((cell) => cell.addEventListener("click", () => view.handleCellClick(cell)));
+resetButton.addEventListener("click", () => view.handleReset())
+
+const view = (function () {
+
+    //after clicking cell, get the cell  that is clicked, its row and column
+    function handleCellClick(cell) {
+        const row = cell.dataset.row;
+        const column = cell.dataset.column;
+        controller.placeChar(row, column)
+        displayBoardArray()
+    }
+
+    function displayBoardArray() {
+        const boardArray = boardGame.getBoard();
+        cells.forEach((cell) => {
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (cell.dataset.row === i.toString() && cell.dataset.column === j.toString()) {
+                        cell.textContent = boardArray[i][j];
+                        break;
+                    }
+                }
+            }
+        })
+    }
+    function onWinView(player) {
+        turnLabel.textContent = "congrats! " + player + " is the winner";
+    }
+    function updateTurn(turn){
+        if(boardGame.getGameFinished()){
+            return
+        }
+        turnLabel.textContent = turn;
+    }
+    function updateDraw(){
+        turnLabel.textContent = "its a draw!"
+    }
+
+    function handleReset(){
+        boardGame.resetBoard();
+        controller.resetController();
+        turnLabel.textContent = "player 1"
+        displayBoardArray();
+        boardGame.setGameFinished(false);
+    }
+
+    function updateScoreView() {
+
+    }
+
+    return ({ handleCellClick, onWinView, handleReset, updateTurn, updateDraw })
+})()

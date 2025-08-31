@@ -6,14 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="style.css">
-    <script src="./script.js"></script>
+    <script src="./script.js" defer></script>
 </head>
 
 <body>
     <div>
     </div>
     <main>
-        <p>player turn</p>
+        <p id = "turn-label">player 1 turn</p>
         <div class="board-container">
             <div class="cells" data-row="0" data-column="0"></div>
             <div class="cells" data-row="0" data-column="1"></div>
@@ -28,7 +28,7 @@
             <div class="cells" data-row="2" data-column="2"></div>
 
         </div>
-        <button>reset</button>
+        <button id = "reset-button">reset</button>
     </main>
     <div></div>
 </body>
