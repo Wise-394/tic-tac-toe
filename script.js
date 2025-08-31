@@ -14,7 +14,7 @@ const boardGame = (function () {
     function setGameFinished(isFinished) {
         isFinished ? gameFinished = true : gameFinished = false;
     }
-    
+
     function resetBoard() {
         gameFinished = false;
         turnCount = 0;
@@ -38,8 +38,8 @@ const boardGame = (function () {
         return true; //success
     }
 
-    function checkIfDraw(){
-        if (turnCount === 9){
+    function checkIfDraw() {
+        if (turnCount === 9) {
             gameFinished = true;
             return true;
         }
@@ -114,11 +114,11 @@ const controller = (function () {
         }
 
         view.updateTurn(turn);
-        if(boardGame.checkIfDraw()){
+        if (boardGame.checkIfDraw()) {
             onDraw();
         }
     }
-   
+
     function handlefailedToTurn() {
         console.log("turn invalid");
     }
@@ -132,12 +132,13 @@ const controller = (function () {
         view.onWinView(turn);
         boardGame.setGameFinished(true);
     }
-     function onDraw() {
+    function onDraw() {
         view.updateDraw();
     }
-    
-    function resetController(){
+
+    function resetController() {
         turn = "player1"
+        boardGame.resetBoard();
     }
 
     return ({ placeChar, onWin, resetController });
@@ -150,7 +151,7 @@ const cells = document.querySelectorAll(".cells");
 const turnLabel = document.querySelector("#turn-label")
 const resetButton = document.querySelector("#reset-button")
 cells.forEach((cell) => cell.addEventListener("click", () => view.handleCellClick(cell)));
-resetButton.addEventListener("click", () => view.handleReset())
+resetButton.addEventListener("click", () => view.resetView())
 
 const view = (function () {
 
@@ -167,7 +168,7 @@ const view = (function () {
         cells.forEach((cell) => {
             for (let i = 0; i < 3; i++) {
                 for (let j = 0; j < 3; j++) {
-                    if (cell.dataset.row === i.toString() && cell.dataset.column === j.toString()) {
+                    if (cell.dataset.row == i && cell.dataset.column == j) {
                         cell.textContent = boardArray[i][j];
                         break;
                     }
@@ -178,27 +179,31 @@ const view = (function () {
     function onWinView(player) {
         turnLabel.textContent = "congrats! " + player + " is the winner";
     }
-    function updateTurn(turn){
-        if(boardGame.getGameFinished()){
+    function updateTurn(turn) {
+        if (boardGame.getGameFinished()) {
             return
         }
         turnLabel.textContent = turn;
     }
-    function updateDraw(){
+    function updateDraw() {
         turnLabel.textContent = "its a draw!"
     }
 
-    function handleReset(){
-        boardGame.resetBoard();
+    function resetView() {
+        turnLabel.textContent = "player 1";
         controller.resetController();
-        turnLabel.textContent = "player 1"
         displayBoardArray();
-        boardGame.setGameFinished(false);
     }
 
     function updateScoreView() {
 
     }
 
-    return ({ handleCellClick, onWinView, handleReset, updateTurn, updateDraw })
+    return ({ handleCellClick, onWinView, updateTurn, updateDraw, resetView })
 })()
+// TODO: move the reset function to the controller, improve the flow of the code because currently its a spaghetti,
+// make a flow of the system.
+// turn -> check if valid(not overwriting, game not finished) -> do turn -> 
+// check if win -> check if draw -> update label if win or draw or next player
+
+//TODO: make a scoreboard
