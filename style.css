@@ -1,0 +1,39 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    height: 100vh;;
+}
+
+body > * {
+    outline:1px solid black;
+}
+
+main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap:25px;
+    padding: 25px;
+}
+main > * {
+    flex: 1 1 0
+}
+.board-container {
+    flex: 8 1 0
+}
+.board-container {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 10px 10px;
+    width: 100%;
+}
+.cells {
+    border-radius: 10px;
+    outline: 1px solid black;
+}
