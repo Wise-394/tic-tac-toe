@@ -1,6 +1,6 @@
-//contains board game logic
+// contains board game logic
 const boardGame = (function () {
-    let gameFinished = false;
+    let gameState = "playing"; // playing, win, draw
     let turnCount = 0;
     let boardArray = [
         [null, null, null],
@@ -9,14 +9,15 @@ const boardGame = (function () {
     ];
 
     const getBoard = () => boardArray;
-    const getGameFinished = () => gameFinished;
-    const increaseTurnCount = () => gameFinished ? turnCount : turnCount++;
-    function setGameFinished(isFinished) {
-        isFinished ? gameFinished = true : gameFinished = false;
+    const getGameState = () => gameState;
+    const increaseTurnCount = () => { if (gameState === "playing") turnCount++; };
+
+    function setGameState(state) {
+        gameState = state;
     }
 
     function resetBoard() {
-        gameFinished = false;
+        setGameState("playing");
         turnCount = 0;
         boardArray = [
             [null, null, null],
@@ -26,21 +27,19 @@ const boardGame = (function () {
     }
 
     function setBoard(char, row, column) {
-        if (gameFinished) {
-            return false;
-        }
-        if (boardArray[row][column] !== null) {
-            return false; //error
-        }
+        if (gameState !== "playing") return false;
+        if (boardArray[row][column] !== null) return false;
+
         boardArray[row][column] = char;
+        increaseTurnCount();
         checkIfWin();
-        increaseTurnCount()
-        return true; //success
+        checkIfDraw();
+        return true; // success
     }
 
     function checkIfDraw() {
-        if (turnCount === 9) {
-            gameFinished = true;
+        if (turnCount === 9 && gameState === "playing") {
+            setGameState("draw");
             return true;
         }
     }
@@ -51,7 +50,7 @@ const boardGame = (function () {
             if (boardArray[i][0] !== null &&
                 boardArray[i][0] === boardArray[i][1] &&
                 boardArray[i][0] === boardArray[i][2]) {
-                return controller.onWin();
+                setGameState("win");
             }
         }
 
@@ -60,62 +59,50 @@ const boardGame = (function () {
             if (boardArray[0][i] !== null &&
                 boardArray[0][i] === boardArray[1][i] &&
                 boardArray[0][i] === boardArray[2][i]) {
-                return controller.onWin();
+                setGameState("win");
             }
         }
 
         // Diagonal
         if (boardArray[1][1] !== null) {
-            if (boardArray[0][0] === boardArray[1][1] && boardArray[0][0] === boardArray[2][2]) {
-                return controller.onWin();
+            if (boardArray[0][0] === boardArray[1][1] &&
+                boardArray[0][0] === boardArray[2][2]) {
+                setGameState("win");
             }
-            if (boardArray[0][2] === boardArray[1][1] && boardArray[0][2] === boardArray[2][0]) {
-                return controller.onWin();
+            if (boardArray[0][2] === boardArray[1][1] &&
+                boardArray[0][2] === boardArray[2][0]) {
+                setGameState("win");
             }
         }
     }
 
-
-    return ({ getBoard, setBoard, resetBoard, setGameFinished, getGameFinished, checkIfDraw });
+    return { getBoard, setBoard, resetBoard, setGameState, getGameState };
 })();
 
-//anything associated with players
+// anything associated with players
 function createPlayer() {
     let score = 0;
-
     const getScore = () => score;
-    function updateScore() {
-        score++;
-    }
-
-    function resetScore() {
-        score = 0;
-    }
-
+    const updateScore = () => { score++; };
+    const resetScore = () => { score = 0; };
     return { updateScore, resetScore, getScore };
 }
-
-
-
-//contains the logic for game
+const player1 = createPlayer();
+const player2 = createPlayer();
+// contains the logic for game
 const controller = (function () {
-    const player1 = createPlayer();
-    const player2 = createPlayer();
+
     let turn = "player1";
 
-    function placeChar(row, column) {
+    function placeTurn(row, column) {
         if (turn === "player1") {
             let success = boardGame.setBoard("x", row, column);
-            success ? turn = "player2" : handlefailedToTurn()
-
-        } else if (turn === "player2") {
-            let success = boardGame.setBoard("0", row, column);
-            success ? turn = "player1" : handlefailedToTurn();
-        }
-
-        view.updateTurn(turn);
-        if (boardGame.checkIfDraw()) {
-            onDraw();
+            if (!success) return handlefailedToTurn();
+            turn = "player2";
+        } else {
+            let success = boardGame.setBoard("o", row, column);
+            if (!success) return handlefailedToTurn();
+            turn = "player1";
         }
     }
 
@@ -124,86 +111,96 @@ const controller = (function () {
     }
 
     function onWin() {
-        if (turn === "player1") {
-            player1.updateScore();
-        } else if (turn === "player2") {
-            player2.updateScore();
-        }
-        view.onWinView(turn);
-        boardGame.setGameFinished(true);
+        let winner = turn === "player1" ? "player2" : "player1";
+        updateSCore(winner);
+        view.onWinView(winner);
+
     }
+
     function onDraw() {
         view.updateDraw();
     }
-
+    function updateSCore(winner) {
+        if (winner === "player1") {
+            player1.updateScore();
+        } else if (winner === "player2") {
+            player2.updateScore();
+        }
+    }
     function resetController() {
-        turn = "player1"
+        turn = "player1";
         boardGame.resetBoard();
     }
 
-    return ({ placeChar, onWin, resetController });
+    function systemFlow(row, column) {
+        placeTurn(row, column);
 
+        const state = boardGame.getGameState();
+        if (state === "playing") {
+            view.updateTurn(turn);
+        } else if (state === "draw") {
+            onDraw();
+        } else if (state === "win") {
+            onWin();
+        }
+    }
+
+    return { systemFlow, resetController };
 })();
 
-
-//view
+// view
 const cells = document.querySelectorAll(".cells");
-const turnLabel = document.querySelector("#turn-label")
-const resetButton = document.querySelector("#reset-button")
-cells.forEach((cell) => cell.addEventListener("click", () => view.handleCellClick(cell)));
-resetButton.addEventListener("click", () => view.resetView())
+const turnLabel = document.querySelector("#turn-label");
+const resetButton = document.querySelector("#reset-button");
+const player1ScoreLabel = document.querySelector("#player1-score");
+const player2ScoreLabel = document.querySelector("#player2-score");
+const drawScoreLabel = document.querySelector("#draw-score")
+cells.forEach((cell) =>
+    cell.addEventListener("click", () => view.handleCellClick(cell))
+);
+resetButton.addEventListener("click", () => view.resetView());
 
 const view = (function () {
-
-    //after clicking cell, get the cell  that is clicked, its row and column
     function handleCellClick(cell) {
         const row = cell.dataset.row;
         const column = cell.dataset.column;
-        controller.placeChar(row, column)
-        displayBoardArray()
+        controller.systemFlow(row, column);
+        displayBoardArray();
     }
 
     function displayBoardArray() {
         const boardArray = boardGame.getBoard();
         cells.forEach((cell) => {
-            for (let i = 0; i < 3; i++) {
-                for (let j = 0; j < 3; j++) {
-                    if (cell.dataset.row == i && cell.dataset.column == j) {
-                        cell.textContent = boardArray[i][j];
-                        break;
-                    }
-                }
-            }
-        })
+            const r = cell.dataset.row;
+            const c = cell.dataset.column;
+            cell.textContent = boardArray[r][c] ?? "";
+        });
     }
+
     function onWinView(player) {
-        turnLabel.textContent = "congrats! " + player + " is the winner";
-    }
-    function updateTurn(turn) {
-        if (boardGame.getGameFinished()) {
-            return
+        turnLabel.textContent = "Congrats! " + player + " wins!";
+        if (player == "player1") {
+            player1ScoreLabel.textContent = player1.getScore();
+        } else if (player === "player2") {
+            player2ScoreLabel.textContent = player2.getScore();
         }
-        turnLabel.textContent = turn;
     }
+
+    function updateTurn(turn) {
+        if (boardGame.getGameState() === "playing") {
+            turnLabel.textContent = turn;
+        }
+    }
+
     function updateDraw() {
-        turnLabel.textContent = "its a draw!"
+        turnLabel.textContent = "It's a draw!";
     }
 
     function resetView() {
-        turnLabel.textContent = "player 1";
+        turnLabel.textContent = "player1";
         controller.resetController();
         displayBoardArray();
     }
 
-    function updateScoreView() {
-
-    }
-
-    return ({ handleCellClick, onWinView, updateTurn, updateDraw, resetView })
-})()
-// TODO: move the reset function to the controller, improve the flow of the code because currently its a spaghetti,
-// make a flow of the system.
-// turn -> check if valid(not overwriting, game not finished) -> do turn -> 
-// check if win -> check if draw -> update label if win or draw or next player
-
-//TODO: make a scoreboard
+    return { handleCellClick, onWinView, updateTurn, updateDraw, resetView };
+})();

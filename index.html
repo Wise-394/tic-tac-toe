@@ -13,7 +13,7 @@
     <div>
     </div>
     <main>
-        <p id = "turn-label">player 1 turn</p>
+        <p id="turn-label">player 1 turn</p>
         <div class="board-container">
             <div class="cells" data-row="0" data-column="0"></div>
             <div class="cells" data-row="0" data-column="1"></div>
@@ -28,9 +28,24 @@
             <div class="cells" data-row="2" data-column="2"></div>
 
         </div>
-        <button id = "reset-button">reset</button>
+        <button id="reset-button">reset</button>
     </main>
-    <div></div>
+    <div>
+        <div class="card-container">
+            <div class="card">
+                <p>Player 1</p>
+                <p id = "player1-score">0</p>
+            </div>
+            <div class="card">
+                <p >Draw</p>
+                <p id = "draw-score">0</p>
+            </div>
+            <div class="card">
+                <p>Player 2</p>
+                <p id = "player2-score">0</p>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

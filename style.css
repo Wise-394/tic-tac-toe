@@ -9,9 +9,7 @@ body {
     height: 100vh;;
 }
 
-body > * {
-    outline:1px solid black;
-}
+
 
 main {
     display: flex;
@@ -42,4 +40,18 @@ main > * {
 }
 .cells:hover{
     transform: scale(1.1);
+}
+
+.card-container{
+    display: flex;
+    width: 45%;
+    height: 100px;
+    margin: 110px 25px;
+    outline: solid 1px black;
+    justify-content: center;
+    align-items: center;
+}
+.card {
+    text-align: center;
+    flex: 1 1 0
 }
