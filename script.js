@@ -94,7 +94,7 @@ const controller = (function () {
 
     let turn = "player1";
     let drawScore = 0;
-
+    let gameFinished = false
     const getDrawScore = () => drawScore;
     const increaseDrawScore = () => drawScore++;
 
@@ -118,6 +118,7 @@ const controller = (function () {
         let winner = turn === "player1" ? "player2" : "player1";
         updateSCore(winner);
         view.onWinView(winner);
+        gameFinished = true;
 
     }
 
@@ -125,6 +126,7 @@ const controller = (function () {
         increaseDrawScore();
         view.updateDraw();
         drawScore++;
+        gameFinished = true;
     }
     function updateSCore(winner) {
         if (winner === "player1") {
@@ -135,18 +137,21 @@ const controller = (function () {
     }
     function resetController() {
         turn = "player1";
+        gameFinished = false
         boardGame.resetBoard();
     }
 
     function systemFlow(row, column) {
-        placeTurn(row, column);
-
+        if (boardGame.getGameState() === "playing") {
+            placeTurn(row, column);
+        }
         const state = boardGame.getGameState();
-        if (state === "playing") {
+        if (state === "playing" && gameFinished === false) {
             view.updateTurn(turn);
-        } else if (state === "draw") {
+        }
+        if (state === "draw" && gameFinished === false) {
             onDraw();
-        } else if (state === "win") {
+        } else if (state === "win" && gameFinished === false) {
             onWin();
         }
     }
@@ -196,7 +201,7 @@ const view = (function () {
 
     function updateTurn(turn) {
         if (boardGame.getGameState() === "playing") {
-            turnMessage = turn === "player1" ? "player 1 turn" : "player 2 turn";
+            let turnMessage = turn === "player1" ? "player 1 turn" : "player 2 turn";
             turnLabel.textContent = turnMessage;
         }
     }
@@ -207,7 +212,7 @@ const view = (function () {
     }
 
     function resetView() {
-        turnLabel.textContent = "player1";
+        turnLabel.textContent = "player 1 turn";
         controller.resetController();
         displayBoardArray();
     }
