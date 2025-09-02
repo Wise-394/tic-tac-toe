@@ -93,6 +93,10 @@ const player2 = createPlayer();
 const controller = (function () {
 
     let turn = "player1";
+    let drawScore = 0;
+
+    const getDrawScore = () => drawScore;
+    const increaseDrawScore = () => drawScore++;
 
     function placeTurn(row, column) {
         if (turn === "player1") {
@@ -118,7 +122,9 @@ const controller = (function () {
     }
 
     function onDraw() {
+        increaseDrawScore();
         view.updateDraw();
+        drawScore++;
     }
     function updateSCore(winner) {
         if (winner === "player1") {
@@ -145,7 +151,8 @@ const controller = (function () {
         }
     }
 
-    return { systemFlow, resetController };
+
+    return { systemFlow, resetController, getDrawScore, increaseDrawScore };
 })();
 
 // view
@@ -178,22 +185,25 @@ const view = (function () {
     }
 
     function onWinView(player) {
-        turnLabel.textContent = "Congrats! " + player + " wins!";
         if (player == "player1") {
+            turnLabel.textContent = "congrats! player 1 wins"
             player1ScoreLabel.textContent = player1.getScore();
         } else if (player === "player2") {
+            turnLabel.textContent = "congrats! player 2 wins"
             player2ScoreLabel.textContent = player2.getScore();
         }
     }
 
     function updateTurn(turn) {
         if (boardGame.getGameState() === "playing") {
-            turnLabel.textContent = turn;
+            turnMessage = turn === "player1" ? "player 1 turn" : "player 2 turn";
+            turnLabel.textContent = turnMessage;
         }
     }
 
     function updateDraw() {
         turnLabel.textContent = "It's a draw!";
+        drawScoreLabel.textContent = controller.getDrawScore()
     }
 
     function resetView() {
